@@ -2,7 +2,30 @@
 
 # Linuxino - Configuración Automática de Entorno Arduino en Linux
 
-**Linuxino** es un proyecto cuyo objetivo es simplificar y automatizar la configuración del entorno de desarrollo de **Arduino** en varias distribuciones de **Linux**. Este script gestiona la instalación de dependencias, configuración de permisos y reglas **udev** para facilitar la interacción con las placas Arduino de manera eficiente y sin complicaciones.
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║   ██╗     ██╗███╗   ██╗██╗   ██╗██╗  ██╗██╗███╗   ██╗ ██████╗            ║
+║   ██║     ██║████╗  ██║██║   ██║╚██╗██╔╝██║████╗  ██║██╔═══██╗           ║
+║   ██║     ██║██╔██╗ ██║██║   ██║ ╚███╔╝ ██║██╔██╗ ██║██║   ██║           ║
+║   ██║     ██║██║╚██╗██║██║   ██║ ██╔██╗ ██║██║╚██╗██║██║   ██║           ║
+║   ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗██║██║ ╚████║╚██████╔╝           ║
+║   ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝            ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+**Linuxino** es un script automatizado completo diseñado para simplificar la configuración del entorno de desarrollo de **Arduino** en múltiples distribuciones de **Linux**. Elimina la molestia de la instalación manual de dependencias, configuración de permisos y creación de reglas udev.
+
+## ✨ Novedades en la Versión 2.0
+
+- 🎨 **Hermosa Interfaz ASCII** con barras de progreso visuales
+- 📋 **Sistema de Menú Interactivo** con 8 opciones diferentes
+- 🔍 **Detección Automática de Dispositivos Arduino** 
+- 📊 **Indicadores de Progreso en Tiempo Real** durante la instalación
+- 📝 **Sistema de Registro Completo** para solución de problemas
+- ✅ **Herramientas de Verificación de Instalación**
+- 🌐 **Soporte Extendido de Distribuciones** (DNF, YUM, Portage)
+- 🔧 **Ejecución Modular** - ejecuta tareas específicas sin instalación completa
+- 🛡️ **Manejo Mejorado de Errores** con registros detallados
 
 ## Tabla de Contenidos
 - [Descripción](#descripción)
@@ -12,154 +35,295 @@
 - [Requisitos](#requisitos)
 - [Dependencias](#dependencias)
 - [Uso](#uso)
-  - [Pasos Previos](#pasos-previos)
-  - [Ejecución](#ejecución)
-- [Cambios que Realiza el Script](#cambios-que-realiza-el-script)
+  - [Inicio Rápido](#inicio-rápido)
+  - [Menú Interactivo](#menú-interactivo)
+- [Qué Hace el Script](#qué-hace-el-script)
   - [Instalación de Paquetes](#instalación-de-paquetes)
-  - [Acceso al Grupo `dialout`](#acceso-al-grupo-dialout)
+  - [Configuración de Permisos](#configuración-de-permisos)
   - [Creación de Reglas udev](#creación-de-reglas-udev)
-- [Comportamiento del Script](#comportamiento-del-script)
+  - [Gestión de BRLTTY](#gestión-de-brltty)
+- [Placas Arduino Soportadas](#placas-arduino-soportadas)
 - [Solución de Problemas](#solución-de-problemas)
 - [Contribuciones](#contribuciones)
 - [Licencia](#licencia)
 
 ## Descripción
 
-**Linuxino** automatiza las tareas necesarias para configurar un entorno de desarrollo de Arduino en sistemas Linux:
-- Instalación de paquetes y dependencias necesarias.
-- Configuración de permisos para el acceso a dispositivos serie.
-- Creación de reglas **udev** para el reconocimiento automático de las placas Arduino.
+**Linuxino** es una poderosa herramienta de automatización que maneja la configuración completa del entorno de desarrollo Arduino en sistemas Linux. Resuelve los problemas más comunes que enfrentan los desarrolladores:
 
-El objetivo principal de este script es eliminar la necesidad de configuraciones manuales, haciendo que cualquier usuario de Linux pueda preparar su sistema para trabajar con Arduino sin dificultad.
+- 🔧 **Instalación automatizada de dependencias** para el toolchain AVR y Arduino IDE
+- 🔐 **Configuración automática de permisos** para acceso a dispositivos serie
+- 📡 **Creación inteligente de reglas udev** para reconocimiento automático de placas Arduino
+- 🚫 **Resolución de conflictos con BRLTTY** para prevenir interferencias con dispositivos Arduino
+- 🔍 **Detección de dispositivos** para verificar hardware Arduino conectado
+- 📊 **Verificación de instalación** para asegurar que todo funcione correctamente
 
 ## Finalidad del Proyecto
 
-El proyecto **Linuxino** fue creado para solventar los problemas más comunes que enfrentan los usuarios de Linux al configurar el entorno de desarrollo para Arduino, tales como:
+El proyecto **Linuxino** fue creado para solventar los problemas más comunes que enfrentan los usuarios de Linux al configurar el entorno de desarrollo para Arduino:
 
-- **Compatibilidad de dependencias**: Evitar la búsqueda manual e instalación de paquetes necesarios.
-- **Permisos de acceso a dispositivos**: Configura automáticamente los permisos para acceder a dispositivos serie sin intervención manual.
-- **Creación de reglas udev**: El sistema reconoce y asigna permisos a las placas Arduino automáticamente cuando se conectan, eliminando la necesidad de cambiar permisos manualmente cada vez.
-- **Errores en la instalación**: En caso de que alguna parte del proceso falle, se genera un archivo de texto con los paquetes que deben ser instalados manualmente, proporcionando instrucciones claras al usuario.
-
-Este script pretende reducir la curva de aprendizaje y simplificar el uso de Arduino en Linux, asegurando que los desarrolladores puedan centrarse en la creación de proyectos en lugar de la configuración del entorno.
+- **Compatibilidad de dependencias**: Evita la búsqueda manual e instalación de paquetes necesarios
+- **Permisos de acceso a dispositivos**: Configura automáticamente los permisos para acceder a dispositivos serie sin intervención manual
+- **Creación de reglas udev**: El sistema reconoce y asigna permisos a las placas Arduino automáticamente cuando se conectan
+- **Gestión de errores**: Sistema de logging completo con registros detallados para troubleshooting
+- **Verificación**: Herramientas integradas para confirmar que la instalación fue exitosa
 
 ## Características
 
-- **Multi-distribución**: Compatible con varias distribuciones de Linux, incluyendo Debian, Ubuntu, Arch Linux, Fedora, openSUSE, y más.
-- **Automatización completa**: Gestiona la instalación de dependencias, configuración de permisos y creación de reglas de manera automática.
-- **Control de errores**: Si algo falla, genera un archivo de texto con una lista de paquetes para instalar manualmente.
-- **Mensajes informativos**: Proporciona un feedback claro y en tiempo real durante la ejecución.
+### Características Principales
+- **🌍 Soporte multi-distribución**: Debian, Ubuntu, Fedora, Arch Linux, openSUSE, Gentoo y derivadas
+- **🤖 Automatización completa**: Cero configuración manual requerida
+- **🎨 Interfaz ASCII hermosa**: Menús y barras de progreso de aspecto profesional
+- **📊 Retroalimentación en tiempo real**: Barras de progreso visuales durante la instalación de paquetes
+- **📝 Registro completo**: Logs detallados guardados en `/tmp/` para troubleshooting
+- **🔒 Manejo robusto de errores**: Degradación elegante con reportes de error detallados
+- **🎯 Ejecución modular**: Ejecuta solo los componentes que necesites
+
+### Características Avanzadas
+- **Sistema de menú interactivo** con 8 modos operacionales diferentes
+- **Detección automática de hardware** para placas Arduino conectadas
+- **Gestión de múltiples grupos** (dialout, uucp, lock, tty)
+- **Soporte extendido de placas** incluyendo clones con chips CH340, CP210x, PL2303
+- **Creación automática de symlinks** para identificación más fácil de dispositivos
+- **Verificación de conectividad a Internet** antes de intentar descargas
+- **Herramientas de verificación de instalación** para confirmar configuración exitosa
 
 ## Distribuciones Compatibles
 
-El script **Linuxino** soporta las siguientes distribuciones de Linux:
-- **Debian/Ubuntu** y derivados: Utiliza `apt-get`.
-- **Arch Linux** y derivados como Manjaro: Utiliza `pacman`.
-- **Fedora**: Utiliza `dnf`.
-- **openSUSE**: Utiliza `zypper`.
+Linuxino detecta automáticamente tu distribución y usa el gestor de paquetes apropiado:
 
-Para otras distribuciones, puede ser necesario instalar las dependencias manualmente o adaptar el script.
+| Familia de Distribución | Gestor de Paquetes | Estado |
+|--------------------------|-------------------|---------|
+| Debian/Ubuntu/Mint | `apt-get` | ✅ Totalmente Soportado |
+| Fedora | `dnf` | ✅ Totalmente Soportado |
+| RHEL/CentOS | `yum` | ✅ Totalmente Soportado |
+| Arch/Manjaro/EndeavourOS | `pacman` | ✅ Totalmente Soportado |
+| openSUSE/SLES | `zypper` | ✅ Totalmente Soportado |
+| Gentoo | `portage/emerge` | ✅ Totalmente Soportado |
+
+Otras distribuciones pueden funcionar con instalación manual de dependencias.
 
 ## Requisitos
 
-- **Acceso root**: Necesario para instalar paquetes, modificar permisos y crear reglas **udev**.
-- **Conexión a Internet**: Requerido para descargar los paquetes necesarios.
+- ✅ **Acceso root/sudo**: Requerido para modificaciones del sistema
+- ✅ **Conexión a Internet**: Para descargar paquetes (verificado automáticamente)
+- ✅ **Distribución Linux moderna**: De la lista soportada arriba
+- ✅ **Emulador de terminal**: Compatible con códigos de color ANSI para mejor experiencia
 
 ## Dependencias
 
-El script instala las siguientes dependencias:
-- **gcc-avr**
-- **avr-libc**
-- **avrdude**
-- **arduino-core**
-- **arduino** (opcional si se usa otro IDE)
+El script instala automáticamente los siguientes paquetes (varía según distribución):
+
+### Paquetes Esenciales
+- **gcc-avr** / **avr-gcc**: Compilador cruzado AVR para desarrollo Arduino
+- **avr-libc**: Biblioteca estándar C para microcontroladores AVR
+- **avrdude**: Herramienta para subir código a placas Arduino
+- **arduino**: El IDE oficial de Arduino
+
+### Herramientas Adicionales (donde estén disponibles)
+- **arduino-core**: Herramientas de desarrollo Arduino básicas
+- **arduino-avr-core**: Definiciones de placas AVR para Arduino
+- **binutils-avr**: Utilidades binarias AVR
+- **gdb-avr**: Depurador GNU para AVR (soporte de debugging)
 
 ## Uso
 
-### Pasos Previos
+### Inicio Rápido
 
 1. **Clonar el repositorio**:
    ```bash
-   git clone https://github.com/tu-usuario/linuxino.git
-   cd linuxino
+   git clone https://github.com/Guerra-666/Linuxino.git
+   cd Linuxino
    ```
 
-2. **Ejecutar con permisos de superusuario**:
-   Debes ejecutar el script con `sudo` para que pueda realizar todas las modificaciones necesarias en tu sistema.
+2. **Hacer el script ejecutable** (si es necesario):
+   ```bash
+   chmod +x Linuxino_ES.sh
+   ```
 
-### Ejecución
+3. **Ejecutar con sudo**:
+   ```bash
+   sudo ./Linuxino_ES.sh
+   ```
 
-Ejecuta el script con el siguiente comando:
+### Menú Interactivo
 
-```bash
-sudo ./configurar_arduino.sh
+Al ejecutar, verás un hermoso banner ASCII y un menú interactivo:
+
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                          MENÚ PRINCIPAL                                   ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+  [1] Instalación completa (recomendado)
+  [2] Instalar solo dependencias
+  [3] Configurar solo permisos (dialout)
+  [4] Configurar solo reglas udev
+  [5] Desactivar BRLTTY
+  [6] Detectar dispositivos Arduino
+  [7] Verificar instalación
+  [8] Salir
 ```
 
-Este comando inicia el proceso automático para configurar el entorno de desarrollo Arduino en tu sistema Linux.
+#### Opciones del Menú Explicadas
 
-### Salida Esperada
+1. **Instalación completa** - Realiza todos los pasos de configuración automáticamente (recomendado para usuarios primerizos)
+2. **Instalar solo dependencias** - Solo instala paquetes Arduino sin configurar permisos
+3. **Configurar solo permisos** - Añade el usuario a dialout y grupos relacionados
+4. **Configurar solo reglas udev** - Crea reglas para detección automática de Arduino
+5. **Desactivar BRLTTY** - Detiene y enmascara el servicio BRLTTY si causa conflictos
+6. **Detectar dispositivos Arduino** - Escanea y muestra placas Arduino conectadas
+7. **Verificar instalación** - Comprueba si todo está instalado correctamente
+8. **Salir** - Abandonar el script
 
-El script mostrará mensajes claros sobre cada tarea que está realizando, como:
+### Aplicar Cambios
 
-- Detectando la distribución de Linux.
-- Instalando dependencias.
-- Configurando permisos de acceso a dispositivos.
-- Creando reglas **udev**.
+**Importante**: Después de la instalación, cierra sesión y vuelve a iniciarla para aplicar los cambios de membresía de grupo:
 
-Si ocurre un error, el script generará un archivo `linuxino-errors.txt` con instrucciones sobre cómo instalar los paquetes manualmente.
+```bash
+# O reinicia tu sistema
+sudo reboot
+```
 
-## Cambios que Realiza el Script
+## Qué Hace el Script
 
 ### Instalación de Paquetes
 
-Dependiendo de la distribución, **Linuxino** utiliza el gestor de paquetes correspondiente para instalar los siguientes paquetes:
+El script detecta tu distribución y usa el gestor de paquetes apropiado con comandos optimizados:
 
-- **Debian/Ubuntu**:
-  ```bash
-  apt-get update && apt-get install -y gcc-avr avr-libc avrdude arduino arduino-core
-  ```
-- **Arch Linux**:
-  ```bash
-  pacman -Sy --noconfirm avr-gcc avr-libc avrdude arduino
-  ```
-- **Fedora**:
-  ```bash
-  dnf install -y avr-gcc avr-libc avrdude arduino
-  ```
-- **openSUSE**:
-  ```bash
-  zypper refresh && zypper install -y gcc-avr avr-libc avrdude arduino
-  ```
+**APT (Debian/Ubuntu)**:
+```bash
+apt-get update
+apt-get install -y gcc-avr avr-libc avrdude arduino arduino-core binutils-avr gdb-avr
+```
 
-### Acceso al Grupo `dialout`
+**Pacman (Arch Linux)**:
+```bash
+pacman -Sy --noconfirm avr-gcc avr-libc avrdude arduino arduino-avr-core
+```
 
-El script añade al usuario actual al grupo `dialout`, permitiendo la comunicación con dispositivos serie sin necesidad de ajustes manuales:
+**DNF (Fedora)**:
+```bash
+dnf install -y avr-gcc avr-libc avrdude arduino
+```
+
+**Zypper (openSUSE)**:
+```bash
+zypper refresh && zypper install -y gcc-avr avr-libc avrdude arduino
+```
+
+**Portage (Gentoo)**:
+```bash
+emerge cross-avr/gcc cross-avr/avr-libc cross-avr/avrdude
+```
+
+### Configuración de Permisos
+
+El script añade tu usuario a múltiples grupos para acceso completo a dispositivos:
 
 ```bash
-usermod -aG dialout "$SUDO_USER"
+usermod -aG dialout $USER    # Grupo principal para dispositivos serie
+usermod -aG uucp $USER       # Unix-to-Unix Copy (comunicación serie)
+usermod -aG lock $USER       # Acceso a archivos de bloqueo
+usermod -aG tty $USER        # Acceso a dispositivos TTY
 ```
 
 ### Creación de Reglas udev
 
-Crea reglas **udev** para que las placas Arduino sean reconocidas automáticamente al conectarse al puerto USB:
+Crea reglas udev completas en `/etc/udev/rules.d/99-arduino.rules` con soporte para:
 
+- ✅ Arduino Uno (original y clones)
+- ✅ Arduino Mega 2560
+- ✅ Arduino Nano (variantes FTDI y CH340)
+- ✅ Arduino Leonardo
+- ✅ Arduino Micro
+- ✅ Arduino Due
+- ✅ Arduino Yún
+- ✅ Arduino Robot Control/Motor
+- ✅ Adaptadores serie genéricos (CP210x, PL2303, CH340)
+
+Cada regla crea symlinks automáticos para identificación fácil:
 ```bash
-# Arduino Uno
-SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0043", MODE="0666", GROUP="dialout"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0043", 
+MODE="0666", GROUP="dialout", SYMLINK+="arduino_uno"
 ```
 
-## Comportamiento del Script
+### Gestión de BRLTTY
 
-Durante su ejecución, **Linuxino**:
-- Detecta la distribución y utiliza el gestor de paquetes adecuado.
-- Añade al usuario al grupo `dialout`.
-- Crea reglas **udev** para dispositivos Arduino.
+BRLTTY (servicio de pantalla braille) puede causar conflictos con Arduino. El script ofrece:
+- Detener el servicio
+- Deshabilitarlo del inicio automático
+- Enmascararlo para prevenir activación accidental
+
+## Placas Arduino Soportadas
+
+Linuxino incluye reglas udev para:
+
+| Tipo de Placa | Variantes de Chip | Symlink Creado |
+|---------------|-------------------|----------------|
+| Arduino Uno | Original, Rev3 | `/dev/arduino_uno` |
+| Arduino Mega 2560 | Original, Rev3, Genuino | `/dev/arduino_mega` |
+| Arduino Nano | FTDI, CH340 | `/dev/arduino_nano_*` |
+| Arduino Leonardo | Todas las variantes | `/dev/arduino_leonardo` |
+| Arduino Micro | Todas las variantes | `/dev/arduino_micro` |
+| Arduino Due | Programming & Native | `/dev/arduino_due` |
+| Arduino Yún | Todas las variantes | `/dev/arduino_yun` |
+
+¡Además de soporte genérico para chips USB-to-Serial comunes!
 
 ## Solución de Problemas
 
-Si el script falla, verifica lo siguiente:
-- Revisa el archivo `linuxino-errors.txt` para detalles sobre paquetes que podrían requerir instalación manual.
-- Asegúrate de haber cerrado sesión y vuelto a iniciarla para que los cambios en los grupos surtan efecto.
+### Problemas Comunes
+
+**Problema**: Arduino no detectado después de la instalación
+```bash
+# Verificar si el dispositivo está conectado
+lsusb | grep -i arduino
+
+# Verificar si las reglas udev están cargadas
+cat /etc/udev/rules.d/99-arduino.rules
+
+# Recargar reglas manualmente
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+**Problema**: Permiso denegado al acceder a Arduino
+```bash
+# Verificar membresía de grupo
+groups $USER | grep dialout
+
+# Si no está en el grupo, necesitas cerrar sesión y volver a iniciar
+```
+
+**Problema**: BRLTTY sigue interfiriendo
+```bash
+# Verificar estado de BRLTTY
+systemctl status brltty
+
+# Enmascararlo manualmente
+sudo systemctl mask brltty
+```
+
+### Logs y Diagnósticos
+
+Todas las operaciones se registran en `/tmp/linuxino_YYYYMMDD_HHMMSS.log`
+
+Ver el log:
+```bash
+cat /tmp/linuxino_*.log
+```
+
+Buscar errores:
+```bash
+grep ERROR /tmp/linuxino_*.log
+```
+
+### Obtener Ayuda
+
+Si encuentras problemas:
+1. Revisa el archivo de log en `/tmp/`
+2. Ejecuta la opción de verificación desde el menú
+3. Abre un issue en GitHub con el contenido del log
 
 ## Contribuciones
 

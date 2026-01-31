@@ -1,6 +1,29 @@
 # Linuxino: Automatic Arduino Environment Setup on Linux
 
-This project is called **Linuxino** and its goal is to automate the setup of the **Arduino** development environment on Linux distributions. It solves common problems such as the manual installation of dependencies, permission issues with device access, and the creation of **udev** rules to make it easier to interact with Arduino boards.
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║   ██╗     ██╗███╗   ██╗██╗   ██╗██╗  ██╗██╗███╗   ██╗ ██████╗            ║
+║   ██║     ██║████╗  ██║██║   ██║╚██╗██╔╝██║████╗  ██║██╔═══██╗           ║
+║   ██║     ██║██╔██╗ ██║██║   ██║ ╚███╔╝ ██║██╔██╗ ██║██║   ██║           ║
+║   ██║     ██║██║╚██╗██║██║   ██║ ██╔██╗ ██║██║╚██╗██║██║   ██║           ║
+║   ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗██║██║ ╚████║╚██████╔╝           ║
+║   ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝            ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+**Linuxino** is a comprehensive automated script designed to simplify and streamline the setup of the **Arduino** development environment across multiple **Linux** distributions. It eliminates the hassle of manual dependency installation, permission configuration, and udev rules setup.
+
+## ✨ What's New in Version 2.0
+
+- 🎨 **Beautiful ASCII Interface** with visual progress bars
+- 📋 **Interactive Menu System** with 8 different options
+- 🔍 **Automatic Arduino Device Detection** 
+- 📊 **Real-time Progress Indicators** during installation
+- 📝 **Comprehensive Logging System** for troubleshooting
+- ✅ **Installation Verification** tools
+- 🌐 **Extended Distribution Support** (DNF, YUM, Portage)
+- 🔧 **Modular Execution** - run specific tasks without full installation
+- 🛡️ **Enhanced Error Handling** with detailed logs
 
 ## Table of Contents
 - [Description](#description)
@@ -9,59 +32,90 @@ This project is called **Linuxino** and its goal is to automate the setup of the
 - [Requirements](#requirements)
 - [Dependencies](#dependencies)
 - [Usage](#usage)
-  - [Pre-Execution Steps](#pre-execution-steps)
-  - [Execution](#execution)
-- [Script Changes](#script-changes)
+  - [Quick Start](#quick-start)
+  - [Interactive Menu](#interactive-menu)
+- [What the Script Does](#what-the-script-does)
   - [Package Installation](#package-installation)
-  - [Dialout Group Access](#dialout-group-access)
+  - [Permissions Configuration](#permissions-configuration)
   - [udev Rules Creation](#udev-rules-creation)
-- [Script Behavior](#script-behavior)
+  - [BRLTTY Management](#brltty-management)
+- [Supported Arduino Boards](#supported-arduino-boards)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Description
 
-This script automates the following tasks to configure an Arduino development environment on Linux:
-- Installs essential dependencies like **gcc-avr**, **avr-libc**, **avrdude**, and **arduino-core**.
-- Configures the current user to access serial devices (like Arduino boards) without needing manual permissions each time.
-- Creates **udev** rules so that Arduino boards are automatically recognized by the system without requiring further adjustments.
+**Linuxino** is a powerful automation tool that handles the complete Arduino development environment setup on Linux systems. It tackles the most common issues developers face:
 
-This script is useful for anyone looking to avoid manual installation and specific configurations that can complicate using Arduino on Linux systems.
+- 🔧 **Automated dependency installation** for AVR toolchain and Arduino IDE
+- 🔐 **Automatic permission configuration** for serial device access
+- 📡 **Smart udev rules creation** for automatic Arduino board recognition
+- 🚫 **BRLTTY conflict resolution** to prevent interference with Arduino devices
+- 🔍 **Device detection** to verify connected Arduino hardware
+- 📊 **Installation verification** to ensure everything works correctly
 
 ## Features
 
-- **Multi-distribution support**: Works on Debian, Ubuntu, Arch Linux, openSUSE, and other distributions with compatible package managers.
-- **Complete automation**: No manual configurations are needed as the script handles everything.
-- **Clear messaging**: During execution, the script displays dynamic, user-friendly messages that indicate the progress of each task.
-- **Error handling**: The script handles critical errors and provides clear feedback if something goes wrong during execution.
+### Core Features
+- **🌍 Multi-distribution support**: Debian, Ubuntu, Fedora, Arch Linux, openSUSE, Gentoo, and derivatives
+- **🤖 Full automation**: Zero manual configuration required
+- **🎨 Beautiful ASCII interface**: Professional-looking menus and progress indicators
+- **📊 Real-time feedback**: Visual progress bars during package installation
+- **📝 Comprehensive logging**: Detailed logs saved to `/tmp/` for troubleshooting
+- **🔒 Robust error handling**: Graceful degradation with detailed error reporting
+- **🎯 Modular execution**: Run only the components you need
+
+### Advanced Features
+- **Interactive menu system** with 8 different operational modes
+- **Automatic hardware detection** for connected Arduino devices
+- **Multiple group management** (dialout, uucp, lock, tty)
+- **Extended board support** including clones with CH340, CP210x, PL2303 chips
+- **Automatic symlink creation** for easier device identification
+- **Internet connectivity check** before attempting downloads
+- **Installation verification tools** to confirm successful setup
 
 ## Compatible Distributions
 
-This script is compatible with the following Linux distributions:
-- **Debian/Ubuntu** (and derivatives): Uses `apt-get` for package installation.
-- **Arch Linux** (and derivatives like Manjaro): Uses `pacman` for package installation.
-- **openSUSE**: Uses `zypper` for package installation.
+Linuxino automatically detects your distribution and uses the appropriate package manager:
 
-For other distributions, it may be necessary to modify the script or manually install the dependencies.
+| Distribution Family | Package Manager | Status |
+|---------------------|----------------|---------|
+| Debian/Ubuntu/Mint | `apt-get` | ✅ Fully Supported |
+| Fedora | `dnf` | ✅ Fully Supported |
+| RHEL/CentOS | `yum` | ✅ Fully Supported |
+| Arch/Manjaro/EndeavourOS | `pacman` | ✅ Fully Supported |
+| openSUSE/SLES | `zypper` | ✅ Fully Supported |
+| Gentoo | `portage/emerge` | ✅ Fully Supported |
+
+Other distributions may work with manual dependency installation.
 
 ## Requirements
 
-- **Root access**: The script requires superuser permissions to install packages, modify user groups, and create udev rules.
-- **Internet connection**: To download and install the required dependencies.
+- ✅ **Root/sudo access**: Required for system modifications
+- ✅ **Internet connection**: For downloading packages (checked automatically)
+- ✅ **Modern Linux distribution**: From the supported list above
+- ✅ **Terminal emulator**: Supporting ANSI color codes for best experience
 
 ## Dependencies
 
-The script will install the following dependencies:
-- **gcc-avr**: AVR compiler.
-- **avr-libc**: Standard AVR library for development.
-- **avrdude**: Programming software for AVR microcontrollers.
-- **arduino-core**: Essential tools for Arduino usage.
-- **arduino**: The Arduino IDE (optional if using another tool).
+The script automatically installs the following packages (varies by distribution):
+
+### Essential Packages
+- **gcc-avr** / **avr-gcc**: AVR cross-compiler for Arduino development
+- **avr-libc**: Standard C library for AVR microcontrollers
+- **avrdude**: Tool for uploading code to Arduino boards
+- **arduino**: The official Arduino IDE
+
+### Additional Tools (where available)
+- **arduino-core**: Core Arduino development tools
+- **arduino-avr-core**: AVR board definitions for Arduino
+- **binutils-avr**: AVR binary utilities
+- **gdb-avr**: GNU debugger for AVR (debugging support)
 
 ## Usage
 
-### Pre-Execution Steps
+### Quick Start
 
 1. **Clone the repository**:
    ```bash
@@ -69,94 +123,194 @@ The script will install the following dependencies:
    cd Linuxino
    ```
 
-2. **Ensure you have root access**:
-   You must run the script with superuser permissions (`sudo`) so that it can make all the necessary system changes.
+2. **Make the script executable** (if needed):
+   ```bash
+   chmod +x Linuxino.sh
+   ```
 
-### Execution
+3. **Run with sudo**:
+   ```bash
+   sudo ./Linuxino.sh
+   ```
 
-Run the script using `sudo`:
+### Interactive Menu
 
-```bash
-sudo ./Linuxino.sh
+Upon running, you'll see a beautiful ASCII banner and interactive menu:
+
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                          MAIN MENU                                        ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+  [1] Complete installation (recommended)
+  [2] Install dependencies only
+  [3] Configure permissions only (dialout)
+  [4] Configure udev rules only
+  [5] Disable BRLTTY
+  [6] Detect Arduino devices
+  [7] Verify installation
+  [8] Exit
 ```
 
-This command will begin the process of setting up the Arduino environment on your system.
+#### Menu Options Explained
 
-### Expected Output
-
-During execution, the script will display user-friendly messages about the tasks it is performing, for example:
-- Detecting the Linux distribution.
-- Installing the necessary dependencies.
-- Configuring the `dialout` group to allow device access.
-- Creating **udev** rules for automatic detection of Arduino boards.
-- Reporting any errors or confirming that the setup was completed successfully.
+1. **Complete installation** - Performs all setup steps automatically (recommended for first-time users)
+2. **Install dependencies only** - Only installs Arduino packages without configuring permissions
+3. **Configure permissions only** - Adds user to dialout and related groups
+4. **Configure udev rules only** - Creates rules for automatic Arduino detection
+5. **Disable BRLTTY** - Stops and masks the BRLTTY service if it's causing conflicts
+6. **Detect Arduino devices** - Scans and displays connected Arduino boards
+7. **Verify installation** - Checks if everything is properly installed
+8. **Exit** - Quit the script
 
 ### Applying Changes
 
-Once the script finishes, you will need to log out and log back in for the changes related to the `dialout` group to take effect.
+**Important**: After installation, log out and log back in to apply group membership changes:
 
-## Script Changes
+```bash
+# Or reboot your system
+sudo reboot
+```
+
+## What the Script Does
 
 ### Package Installation
 
-Depending on your Linux distribution, the script will automatically install the required packages using the corresponding package manager:
+The script detects your distribution and uses the appropriate package manager with optimized commands:
 
-- For **Debian/Ubuntu**:
-  ```bash
-  apt-get update && apt-get install -y gcc-avr avr-libc avrdude arduino arduino-core
-  ```
-- For **Arch Linux**:
-  ```bash
-  pacman -Sy --noconfirm avr-gcc avr-libc avrdude arduino
-  ```
-- For **openSUSE**:
-  ```bash
-  zypper refresh && zypper install -y gcc-avr avr-libc avrdude arduino
-  ```
-
-### Dialout Group Access
-
-The script adds the current user to the `dialout` group, allowing access to serial devices without additional permissions.
-
-Command used:
+**APT (Debian/Ubuntu)**:
 ```bash
-usermod -aG dialout "$SUDO_USER"
+apt-get update
+apt-get install -y gcc-avr avr-libc avrdude arduino arduino-core binutils-avr gdb-avr
 ```
 
-This is important for interacting with boards like Arduino, as devices connected to serial ports (such as `/dev/ttyUSB0`) are usually associated with this group.
+**Pacman (Arch Linux)**:
+```bash
+pacman -Sy --noconfirm avr-gcc avr-libc avrdude arduino arduino-avr-core
+```
+
+**DNF (Fedora)**:
+```bash
+dnf install -y avr-gcc avr-libc avrdude arduino
+```
+
+**Zypper (openSUSE)**:
+```bash
+zypper refresh && zypper install -y gcc-avr avr-libc avrdude arduino
+```
+
+**Portage (Gentoo)**:
+```bash
+emerge cross-avr/gcc cross-avr/avr-libc cross-avr/avrdude
+```
+
+### Permissions Configuration
+
+The script adds your user to multiple groups for comprehensive device access:
+
+```bash
+usermod -aG dialout $USER    # Primary group for serial devices
+usermod -aG uucp $USER       # Unix-to-Unix Copy (serial communication)
+usermod -aG lock $USER       # Lock file access
+usermod -aG tty $USER        # TTY device access
+```
 
 ### udev Rules Creation
 
-The **udev** rules created allow the system to automatically recognize Arduino boards connected to the USB port, assigning them the appropriate permissions.
+Creates comprehensive udev rules at `/etc/udev/rules.d/99-arduino.rules` with support for:
 
-The rules file is created in `/etc/udev/rules.d/99-arduino.rules` and includes entries like:
+- ✅ Arduino Uno (original and clones)
+- ✅ Arduino Mega 2560
+- ✅ Arduino Nano (FTDI and CH340 variants)
+- ✅ Arduino Leonardo
+- ✅ Arduino Micro
+- ✅ Arduino Due
+- ✅ Arduino Yún
+- ✅ Arduino Robot Control/Motor
+- ✅ Generic serial adapters (CP210x, PL2303, CH340)
+
+Each rule creates automatic symlinks for easy identification:
 ```bash
-# Arduino Uno
-SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0043", MODE="0666", GROUP="dialout"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0043", 
+MODE="0666", GROUP="dialout", SYMLINK+="arduino_uno"
 ```
 
-These rules ensure that Arduino boards have read and write permissions without requiring the user to manually adjust the device permissions.
+### BRLTTY Management
 
-## Script Behavior
+BRLTTY (braille display service) can conflict with Arduino. The script offers to:
+- Stop the service
+- Disable it from auto-starting
+- Mask it to prevent accidental activation
 
-During execution, the script:
-- Detects the Linux distribution and installs the required packages.
-- Adds the current user to the `dialout` group to allow communication with serial devices.
-- Creates **udev** rules for Arduino boards to be automatically recognized when connected.
+## Supported Arduino Boards
 
-### Script Messages
+Linuxino includes udev rules for:
 
-The script displays dynamic, color-coded messages indicating the progress of each task:
-- **Progress** messages are displayed in yellow.
-- **Success** messages are displayed in green.
-- **Error** messages are displayed in red, and the script stops if an error occurs.
+| Board Type | Chip Variants | Symlink Created |
+|------------|---------------|-----------------|
+| Arduino Uno | Original, Rev3 | `/dev/arduino_uno` |
+| Arduino Mega 2560 | Original, Rev3, Genuino | `/dev/arduino_mega` |
+| Arduino Nano | FTDI, CH340 | `/dev/arduino_nano_*` |
+| Arduino Leonardo | All variants | `/dev/arduino_leonardo` |
+| Arduino Micro | All variants | `/dev/arduino_micro` |
+| Arduino Due | Programming & Native | `/dev/arduino_due` |
+| Arduino Yún | All variants | `/dev/arduino_yun` |
+
+Plus generic support for common USB-to-Serial chips!
 
 ## Troubleshooting
 
-If the script fails or the changes do not take effect:
-- Make sure you have logged out and back in after the script finishes so that the group changes take effect.
-- If Arduino devices are not recognized, check that the **udev** rules were installed correctly in `/etc/udev/rules.d/`.
-- Ensure that you are running the script with superuser permissions (using `sudo`).
+### Common Issues
+
+**Issue**: Arduino not detected after installation
+```bash
+# Check if device is connected
+lsusb | grep -i arduino
+
+# Check if udev rules are loaded
+cat /etc/udev/rules.d/99-arduino.rules
+
+# Reload rules manually
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+**Issue**: Permission denied when accessing Arduino
+```bash
+# Verify group membership
+groups $USER | grep dialout
+
+# If not in group, you need to log out and back in
+```
+
+**Issue**: BRLTTY keeps interfering
+```bash
+# Verify BRLTTY status
+systemctl status brltty
+
+# Manually mask it
+sudo systemctl mask brltty
+```
+
+### Logs and Diagnostics
+
+All operations are logged to `/tmp/linuxino_YYYYMMDD_HHMMSS.log`
+
+View the log:
+```bash
+cat /tmp/linuxino_*.log
+```
+
+Check for errors:
+```bash
+grep ERROR /tmp/linuxino_*.log
+```
+
+### Getting Help
+
+If you encounter issues:
+1. Check the log file in `/tmp/`
+2. Run the verification option from the menu
+3. Open an issue on GitHub with the log contents
 
 ## Contributing
 
