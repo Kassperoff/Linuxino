@@ -30,6 +30,32 @@ readonly ERROR_FILE="/tmp/linuxino_errors.txt"
 DISTRO_NAME=""
 PACKAGE_MANAGER=""
 ARDUINO_INSTALLED=false
+TARGET_USER=""
+
+# Determine the non-root user for group configuration and AUR helper execution
+determine_target_user() {
+    TARGET_USER="${SUDO_USER:-$USER}"
+    if [ -z "$TARGET_USER" ] || [ "$TARGET_USER" = "root" ]; then
+        # Fallback to get original user if running in sudo but SUDO_USER is root or empty
+        local real_user=""
+        real_user=$(logname 2>/dev/null || echo "$USER")
+        if [ "$real_user" = "root" ]; then
+            # If still root, check who is logged in or home directory owners
+            real_user=$(who | awk '{print $1}' | head -n 1)
+            if [ -z "$real_user" ] || [ "$real_user" = "root" ]; then
+                real_user=$(ls -1d /home/* 2>/dev/null | grep -v "/home/shared" | head -n 1 | cut -d'/' -f3)
+            fi
+        fi
+        TARGET_USER="${real_user:-root}"
+    fi
+    
+    # Allow manual override if target user is still root
+    if [ "$TARGET_USER" = "root" ]; then
+        warning_msg "Could not automatically determine non-root user."
+        read -p "$(echo -e ${CYAN}Enter username:${NC} )" TARGET_USER || TARGET_USER="root"
+    fi
+    log "Target user determined: $TARGET_USER"
+}
 
 #==============================================================================
 # ASCII INTERFACE FUNCTIONS
@@ -120,14 +146,64 @@ error_msg_soft() {
 }
 
 # Error message (with exit)
+# Error message (with exit and diagnostics)
 error_msg() {
-    echo -e "${RED}${BOLD}[✘]${NC} ${RED}$1${NC}"
-    log "FATAL ERROR: $1"
+    local message="$1"
+    local line_num="${2:-Unknown}"
+    local failed_cmd="${3:-Unknown}"
+    
+    # Deactivate the trap temporarily to prevent recursion
+    trap - ERR
+    
     echo -e "\n${RED}${BOLD}╔═══════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${RED}${BOLD}║  Script ended with errors. Check the log: ${LOG_FILE}${NC}"
+    echo -e "${RED}${BOLD}║                     FATAL ERROR DETECTED                                  ║${NC}"
+    echo -e "${RED}${BOLD}╚═══════════════════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${RED}${BOLD}[✘] Message:${NC} $message"
+    
+    if [[ "$line_num" != "Unknown" ]]; then
+        echo -e "${RED}${BOLD}[✘] Line Number in Script:${NC} $line_num"
+    fi
+    if [[ "$failed_cmd" != "Unknown" ]]; then
+        echo -e "${RED}${BOLD}[✘] Failed Command:${NC} $failed_cmd"
+    fi
+    
+    log "FATAL ERROR: $message (Line: $line_num, Command: $failed_cmd)"
+    
+    echo -e "\n${YELLOW}${BOLD}📄 Last 15 log entries (from $LOG_FILE):${NC}"
+    print_separator
+    if [ -f "$LOG_FILE" ]; then
+        tail -n 15 "$LOG_FILE" | sed 's/^/  /'
+    else
+        echo -e "  Log file not found."
+    fi
+    print_separator
+    
+    echo -e "\n${CYAN}${BOLD}💡 Troubleshooting Suggestions:${NC}"
+    if [[ "$failed_cmd" == *"pacman"* || "$failed_cmd" == *"apt"* || "$failed_cmd" == *"dnf"* || "$failed_cmd" == *"yum"* || "$failed_cmd" == *"zypper"* ]]; then
+        echo -e "  1. Verify your Internet connection (ping google.com)."
+        echo -e "  2. Ensure no other package manager or GUI software center is running (checks for lock files)."
+        echo -e "  3. If on Arch Linux, try running 'sudo pacman -Syu' first to sync the database."
+    elif [[ "$failed_cmd" == *"udevadm"* || "$failed_cmd" == *"/etc/udev/"* ]]; then
+        echo -e "  1. Ensure the system partition is not mounted read-only."
+        echo -e "  2. Check if the directory /etc/udev/rules.d/ exists and has correct permissions."
+    elif [[ "$failed_cmd" == *"usermod"* || "$failed_cmd" == *"groupadd"* ]]; then
+        echo -e "  1. Verify that user '$TARGET_USER' and group exist on the system."
+        echo -e "  2. Check if user database files like /etc/passwd or /etc/group are locked or read-only."
+    else
+        echo -e "  1. Make sure you are running the script with sudo privileges (root)."
+        echo -e "  2. Ensure you have enough disk space."
+        echo -e "  3. Review the complete log for more details at: $LOG_FILE"
+    fi
+    
+    echo -e "\n${RED}${BOLD}╔═══════════════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${RED}${BOLD}║  Script terminated. Please resolve the issue and try again.               ║${NC}"
     echo -e "${RED}${BOLD}╚═══════════════════════════════════════════════════════════════════════════╝${NC}\n"
+    
     exit 1
 }
+
+# Trap unexpected command errors
+trap 'error_msg "Unexpected command failure" "$LINENO" "$BASH_COMMAND"' ERR
 
 #==============================================================================
 # VALIDATION FUNCTIONS
@@ -136,6 +212,31 @@ error_msg() {
 # Check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Check if a package is installed on the system
+package_is_installed() {
+    local pkg="$1"
+    case "$PACKAGE_MANAGER" in
+        apt)
+            dpkg -l | grep -q "\b${pkg}\b" 2>/dev/null
+            ;;
+        dnf|yum)
+            rpm -q "$pkg" >/dev/null 2>&1
+            ;;
+        pacman)
+            pacman -Qs "^${pkg}$" >/dev/null 2>&1
+            ;;
+        zypper)
+            rpm -q "$pkg" >/dev/null 2>&1
+            ;;
+        portage)
+            equery list "$pkg" >/dev/null 2>&1
+            ;;
+        *)
+            false
+            ;;
+    esac
 }
 
 # Check root access
@@ -198,8 +299,9 @@ show_menu() {
         echo -e "${YELLOW}  [$((i+1))]${NC} ${menu_items[$i]}"
     done
     
-    echo
-    read -p "$(echo -e ${CYAN}${BOLD}Select an option:${NC} )" selected
+    if ! read -p "$(echo -e ${CYAN}${BOLD}Select an option:${NC} )" selected; then
+        selected="8"
+    fi
     
     if [[ "$selected" =~ ^[0-9]+$ ]] && [ "$selected" -ge 1 ] && [ "$selected" -le "${#menu_items[@]}" ]; then
         return $((selected - 1))
@@ -298,7 +400,7 @@ install_dependencies() {
         pacman)
             update_cmd="pacman -Sy"
             install_cmd="pacman -S --noconfirm"
-            packages="avr-gcc avr-libc avrdude arduino arduino-avr-core"
+            packages="avr-gcc avr-libc avrdude arduino-cli"
             ;;
         zypper)
             update_cmd="zypper refresh"
@@ -339,19 +441,51 @@ install_dependencies() {
             echo -e " ${GREEN}✔${NC}"
         else
             echo -e " ${RED}✘${NC}"
-            warning_msg "Error installing $pkg (continuing with next package)"
+            warning_msg "Error installing $pkg."
+            echo -e "${RED}Package Manager Error Context:${NC}"
+            tail -n 5 "$LOG_FILE" | sed 's/^/  /'
             echo "$pkg" >> "$ERROR_FILE"
         fi
     done
     
     echo
     
-    # Verify Arduino installation
-    if command_exists arduino; then
+    # Verify Arduino toolchain or IDE installation
+    if command_exists arduino || command_exists arduino-cli; then
         ARDUINO_INSTALLED=true
-        success_msg "Arduino IDE installed successfully"
+        success_msg "Arduino CLI/IDE installed successfully"
     else
-        warning_msg "Arduino IDE was not installed correctly"
+        warning_msg "Arduino compiler/toolchain was not installed correctly"
+    fi
+
+    # If on Arch Linux, offer to install graphical IDE from AUR if yay/paru is available
+    if [ "$PACKAGE_MANAGER" = "pacman" ]; then
+        echo
+        info_msg "Arch Linux detected. The graphical Arduino IDE v2 is available in the AUR as 'arduino-ide-bin'."
+        local aur_helper=""
+        if [ -n "$TARGET_USER" ] && [ "$TARGET_USER" != "root" ]; then
+            if command_exists yay; then
+                aur_helper="yay"
+            elif command_exists paru; then
+                aur_helper="paru"
+            fi
+        fi
+        
+        if [ -n "$aur_helper" ]; then
+            if prompt_user "Do you want to install 'arduino-ide-bin' from the AUR using $aur_helper?" "y"; then
+                info_msg "Installing 'arduino-ide-bin' from AUR via $aur_helper. Please wait..."
+                if sudo -u "$TARGET_USER" "$aur_helper" -S --noconfirm arduino-ide-bin >> "$LOG_FILE" 2>&1; then
+                    success_msg "Arduino IDE installed successfully from AUR"
+                    ARDUINO_INSTALLED=true
+                else
+                    echo -e " ${RED}✘${NC}"
+                    warning_msg "Failed to install 'arduino-ide-bin' from AUR. You can try installing it manually: $aur_helper -S arduino-ide-bin"
+                    echo "arduino-ide-bin" >> "$ERROR_FILE"
+                fi
+            fi
+        else
+            warning_msg "No AUR helper (yay or paru) detected, or script not run via sudo. To install the graphical IDE, run: yay -S arduino-ide-bin (as non-root user)"
+        fi
     fi
     
     success_msg "Dependency installation process completed"
@@ -380,13 +514,8 @@ configure_dialout() {
         fi
     fi
     
-    # Determine the correct user
-    local target_user="${SUDO_USER:-$USER}"
-    
-    if [ -z "$target_user" ] || [ "$target_user" = "root" ]; then
-        warning_msg "Could not automatically determine non-root user"
-        read -p "$(echo -e ${CYAN}Enter username:${NC} )" target_user
-    fi
+    # Use the globally determined target non-root user
+    local target_user="$TARGET_USER"
     
     info_msg "Checking if user '$target_user' is in dialout group..."
     
@@ -528,15 +657,15 @@ disable_brltty() {
             
             if prompt_user "Disable BRLTTY to avoid conflicts with Arduino?" "n"; then
                 info_msg "Stopping BRLTTY service..."
-                systemctl stop brltty >> "$LOG_FILE" 2>&1
+                systemctl stop brltty >> "$LOG_FILE" 2>&1 || warning_msg "Could not stop BRLTTY service"
                 
                 info_msg "Disabling BRLTTY service..."
-                systemctl disable brltty >> "$LOG_FILE" 2>&1
+                systemctl disable brltty >> "$LOG_FILE" 2>&1 || warning_msg "Could not disable BRLTTY service"
                 
                 # Mask the service to prevent accidental start
-                systemctl mask brltty >> "$LOG_FILE" 2>&1
+                systemctl mask brltty >> "$LOG_FILE" 2>&1 || warning_msg "Could not mask BRLTTY service"
                 
-                success_msg "BRLTTY has been disabled and masked"
+                success_msg "BRLTTY service deactivation attempted"
             else
                 info_msg "BRLTTY remains active (may cause conflicts)"
             fi
@@ -560,23 +689,23 @@ verify_installation() {
     
     local all_ok=true
     
-    # Check essential commands
-    local commands=("avr-gcc" "avr-libc" "avrdude")
+    # Check essential commands/packages
+    local components=("avr-gcc" "avr-libc" "avrdude")
     
-    for cmd in "${commands[@]}"; do
-        if command_exists "$cmd" || dpkg -l | grep -q "$cmd" 2>/dev/null || rpm -qa | grep -q "$cmd" 2>/dev/null; then
-            echo -e "  ${GREEN}✔${NC} $cmd installed"
+    for comp in "${components[@]}"; do
+        if command_exists "$comp" || package_is_installed "$comp"; then
+            echo -e "  ${GREEN}✔${NC} $comp installed"
         else
-            echo -e "  ${RED}✘${NC} $cmd NOT installed"
+            echo -e "  ${RED}✘${NC} $comp NOT installed"
             all_ok=false
         fi
     done
     
     # Check dialout group
-    if groups "$SUDO_USER" 2>/dev/null | grep -q "\bdialout\b"; then
-        echo -e "  ${GREEN}✔${NC} User in dialout group"
+    if groups "$TARGET_USER" 2>/dev/null | grep -q "\bdialout\b"; then
+        echo -e "  ${GREEN}✔${NC} User '$TARGET_USER' in dialout group"
     else
-        echo -e "  ${RED}✘${NC} User NOT in dialout group"
+        echo -e "  ${RED}✘${NC} User '$TARGET_USER' NOT in dialout group"
         all_ok=false
     fi
     
@@ -667,34 +796,34 @@ main_menu() {
                 print_box "CONFIGURATION COMPLETED!" "$GREEN"
                 warning_msg "IMPORTANT: Log out and log back in to apply all changes"
                 echo
-                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})"
+                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})" || true
                 ;;
             1)  # Dependencies only
                 check_internet
                 install_dependencies
-                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})"
+                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})" || true
                 ;;
             2)  # Permissions only
                 configure_dialout
-                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})"
+                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})" || true
                 ;;
             3)  # Udev only
                 setup_udev_rules
-                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})"
+                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})" || true
                 ;;
             4)  # BRLTTY
                 disable_brltty
-                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})"
+                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})" || true
                 ;;
             5)  # Detect devices
                 detect_arduino_devices
                 echo
-                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})"
+                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})" || true
                 ;;
             6)  # Verify
                 verify_installation
                 echo
-                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})"
+                read -p "$(echo -e ${CYAN}Press ENTER to continue...${NC})" || true
                 ;;
             7|255)  # Exit
                 print_box "See you soon!" "$CYAN"
@@ -711,6 +840,12 @@ main_menu() {
 main() {
     # Initialize log
     echo "=== LINUXINO LOG - $(date) ===" > "$LOG_FILE"
+    
+    # Clean up previous error file
+    rm -f "$ERROR_FILE"
+    
+    # Determine the target non-root user
+    determine_target_user
     
     # Initial checks
     check_root
