@@ -1,0 +1,74 @@
+# ==============================================================================
+# 1. NAME (Nombre del Workflow)
+# Es el título que aparecerá en la pestaña "Actions" de tu repositorio
+# ==============================================================================
+name: Linting y Análisis de Código Shell
+
+# ==============================================================================
+# 2. ON (Eventos / Disparadores)
+# Define los EVENTOS que activan o ejecutan este workflow.
+# ==============================================================================
+on:
+  # Se dispara al hacer "git push" a la rama principal (main)
+  push:
+    branches: [ "main" ]
+
+  # Se dispara cuando se crea o actualiza un Pull Request a la rama main
+  pull_request:
+    branches: [ "main" ]
+
+  # Permite ejecutar este workflow manualmente desde el botón "Run workflow"
+  workflow_dispatch:
+
+# ==============================================================================
+# 3. JOBS (Trabajos a ejecutar)
+# Define las tareas que se realizarán. Puedes tener varios jobs.
+# ==============================================================================
+jobs:
+
+  # ID del trabajo (identificador interno del job, sin espacios)
+  analisis-codigo:
+    # Nombre amigable que se mostrará en la interfaz de GitHub
+    name: Analizar Sintaxis y Calidad con ShellCheck
+
+    # --------------------------------------------------------------------------
+    # 4. RUNS-ON (Entorno de ejecución / Runner)
+    # Especifica el sistema operativo de la MV de GitHub
+    # Opciones comunes: ubuntu-latest
+    # --------------------------------------------------------------------------
+    runs-on: ubuntu-latest
+
+    # --------------------------------------------------------------------------
+    # 5. STEPS (Pasos del trabajo)
+    # Secuencia ordenada de tareas/instrucciones que ejecutará este job
+    # --------------------------------------------------------------------------
+    steps:
+
+      # PASO 1: USES (Acciones prediseñadas)
+      # "uses" permite reutilizar código de acciones creadas por GitHub
+      # 'actions/checkout@v4' clona el código dentro del runner.
+      - name: 1. Clonar el repositorio
+        uses: actions/checkout@v4
+
+      # PASO 2: RUN (Comandos de consola)
+      # "run" ejecuta comandos de terminal (Bash/Linux) dentro de la MV.
+      - name: 2. Instalar herramientas de linteo (ShellCheck)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      # PASO 3: Ejecución de verificación de sintaxis de Bash
+      # "bash -n" revisa errores de sintaxis sin ejecutar el script.
+      - name: 3. Comprobar sintaxis sin ejecutar el script
+        run: |
+          echo "Verificando sintaxis de Linuxino.sh..."
+          bash -n Linuxino.sh
+          echo "Verificando sintaxis de Linuxino_ES.sh..."
+          bash -n Linuxino_ES.sh
+
+      # PASO 4: Ejecución de ShellCheck para buenas prácticas
+      # Revisa variables no declaradas, falta de comillas, comandos obsoletos, etc.
+      - name: 4. Analizar código con ShellCheck
+        run: |
+          echo "Ejecutando linter ShellCheck..."
+          shellcheck -e SC2162 Linuxino.sh Linuxino_ES.sh
