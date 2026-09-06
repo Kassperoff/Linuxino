@@ -1,4 +1,4 @@
-#!/bin/bash
+Y#!/bin/bash
 
 # Colors for messages
 GREEN='\033[0;32m'
@@ -22,7 +22,7 @@ error_msg() {
     exit 1
 }
 
-# Function to check if a command exists
+#  Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
@@ -41,7 +41,7 @@ disable_brltty() {
     info_msg "El servicio BRLTTY es para dispositivos de asistencia para personas con discapacidad visual (como terminales braille). A veces puede interferir con dispositivos Arduino."
 
     prompt_user "¿Disable BRLTTY to avoid conflicts with arduino?"
-    
+
     if systemctl is-active --quiet brltty; then
         systemctl disable brltty && systemctl stop brltty
         success_msg "BRLTTY has been disable."
@@ -78,7 +78,7 @@ install_dependencies() {
 # Configure access to dialout group
 configure_dialout() {
     info_msg "Configuring access to dialout group"
-    
+
     if grep -q dialout /etc/group; then
         info_msg "Dialout group already exists"
     else
@@ -90,7 +90,7 @@ configure_dialout() {
     prompt_user "Do you want to add the current user to the dialout group?"
     info_msg "Adding current user to dialout group"
     usermod -aG dialout "$SUDO_USER" || error_msg "Error adding user to dialout group"
-    
+
     success_msg "User has been added to the dialout group"
 }
 
@@ -108,7 +108,7 @@ SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0666"
 EOF
 
     success_msg "Udev rules created for Arduino"
-    
+
     info_msg "Reloading udev rules"
     udevadm control --reload-rules && udevadm trigger || error_msg "Error reloading udev rules"
     success_msg "Udev rules successfully reloaded"
