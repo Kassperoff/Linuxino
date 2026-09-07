@@ -3,22 +3,27 @@
 This project is called **Linuxino** and its goal is to automate the setup of the **Arduino** development environment on Linux distributions. It solves common problems such as the manual installation of dependencies, permission issues with device access, and the creation of **udev** rules to make it easier to interact with Arduino boards.
 
 ## Table of Contents
-- [Description](#description)
-- [Features](#features)
-- [Compatible Distributions](#compatible-distributions)
-- [Requirements](#requirements)
-- [Dependencies](#dependencies)
-- [Usage](#usage)
-  - [Pre-Execution Steps](#pre-execution-steps)
-  - [Execution](#execution)
-- [Script Changes](#script-changes)
-  - [Package Installation](#package-installation)
-  - [Dialout Group Access](#dialout-group-access)
-  - [udev Rules Creation](#udev-rules-creation)
-- [Script Behavior](#script-behavior)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
+- [Linuxino: Automatic Arduino Environment Setup on Linux](#linuxino-automatic-arduino-environment-setup-on-linux)
+  - [Table of Contents](#table-of-contents)
+  - [Description](#description)
+  - [Features](#features)
+  - [Compatible Distributions](#compatible-distributions)
+  - [Requirements](#requirements)
+  - [Dependencies](#dependencies)
+  - [Usage](#usage)
+    - [Pre-Execution Steps](#pre-execution-steps)
+    - [Execution](#execution)
+    - [Expected Output](#expected-output)
+    - [Applying Changes](#applying-changes)
+  - [Script Changes](#script-changes)
+    - [Package Installation](#package-installation)
+    - [Dialout Group Access](#dialout-group-access)
+    - [udev Rules Creation](#udev-rules-creation)
+  - [Script Behavior](#script-behavior)
+    - [Script Messages](#script-messages)
+  - [Troubleshooting](#troubleshooting)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Description
 
@@ -103,7 +108,7 @@ Depending on your Linux distribution, the script will automatically install the 
 
 - For **Debian/Ubuntu**:
   ```bash
-  apt-get update && apt-get install -y gcc-avr avr-libc avrdude arduino arduino-core
+  apt-get update && apt-get Установить -y gcc-avr avr-libc avrdude arduino arduino-core
   ```
 - For **Arch Linux**:
   ```bash
@@ -111,7 +116,7 @@ Depending on your Linux distribution, the script will automatically install the 
   ```
 - For **openSUSE**:
   ```bash
-  zypper refresh && zypper install -y gcc-avr avr-libc avrdude arduino
+  zypper refresh && zypper Установить -y gcc-avr avr-libc avrdude arduino
   ```
 
 ### Dialout Group Access
